@@ -203,8 +203,11 @@ public class ClassPathScanningCandidateComponentProvider implements EnvironmentC
 	 */
 	@SuppressWarnings("unchecked")
 	protected void registerDefaultFilters() {
+		// 注册注解的过滤器
+		// @Repository，@Service，@Controller 都是 @Component 的子注解，所以只用注册一个 @Component 即可
 		this.includeFilters.add(new AnnotationTypeFilter(Component.class));
 		ClassLoader cl = ClassPathScanningCandidateComponentProvider.class.getClassLoader();
+		// 如果扫描到 javax.annotation.ManagedBean 这个注解类，则添加支持，没有则跳过
 		try {
 			this.includeFilters.add(new AnnotationTypeFilter(
 					((Class<? extends Annotation>) ClassUtils.forName("javax.annotation.ManagedBean", cl)), false));
@@ -312,6 +315,7 @@ public class ClassPathScanningCandidateComponentProvider implements EnvironmentC
 			return addCandidateComponentsFromIndex(this.componentsIndex, basePackage);
 		}
 		else {
+			// ->
 			return scanCandidateComponents(basePackage);
 		}
 	}
@@ -415,8 +419,10 @@ public class ClassPathScanningCandidateComponentProvider implements EnvironmentC
 	private Set<BeanDefinition> scanCandidateComponents(String basePackage) {
 		Set<BeanDefinition> candidates = new LinkedHashSet<>();
 		try {
+			// 拼接路径，扫描当前包下的所有子包
 			String packageSearchPath = ResourcePatternResolver.CLASSPATH_ALL_URL_PREFIX +
 					resolveBasePackage(basePackage) + '/' + this.resourcePattern;
+			// 扫描出所有的组件
 			Resource[] resources = getResourcePatternResolver().getResources(packageSearchPath);
 			boolean traceEnabled = logger.isTraceEnabled();
 			boolean debugEnabled = logger.isDebugEnabled();
@@ -424,10 +430,13 @@ public class ClassPathScanningCandidateComponentProvider implements EnvironmentC
 				if (traceEnabled) {
 					logger.trace("Scanning " + resource);
 				}
-				if (resource.isReadable()) {
+				if (resource.isReadable()) {// 判断是否可读
 					try {
+						// 将资源文件转成源信息读取器
 						MetadataReader metadataReader = getMetadataReaderFactory().getMetadataReader(resource);
+						// 判断是不是候选文件
 						if (isCandidateComponent(metadataReader)) {
+							// 扫描的 bd 信息
 							ScannedGenericBeanDefinition sbd = new ScannedGenericBeanDefinition(metadataReader);
 							sbd.setSource(resource);
 							if (isCandidateComponent(sbd)) {

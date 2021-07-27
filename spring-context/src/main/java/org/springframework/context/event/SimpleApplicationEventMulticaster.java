@@ -136,6 +136,7 @@ public class SimpleApplicationEventMulticaster extends AbstractApplicationEventM
 		ResolvableType type = (eventType != null ? eventType : resolveDefaultEventType(event));
 		Executor executor = getTaskExecutor();
 		for (ApplicationListener<?> listener : getApplicationListeners(event, type)) {
+			// 判断是否支持异步发送
 			if (executor != null) {
 				executor.execute(() -> invokeListener(listener, event));
 			}

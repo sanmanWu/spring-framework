@@ -68,6 +68,7 @@ public class AnnotatedBeanDefinitionReader {
 	 * @see #setEnvironment(Environment)
 	 */
 	public AnnotatedBeanDefinitionReader(BeanDefinitionRegistry registry) {
+		// getOrCreateEnvironment 获取或创建环境，新创建的话进行缓存
 		this(registry, getOrCreateEnvironment(registry));
 	}
 
@@ -84,7 +85,10 @@ public class AnnotatedBeanDefinitionReader {
 		Assert.notNull(registry, "BeanDefinitionRegistry must not be null");
 		Assert.notNull(environment, "Environment must not be null");
 		this.registry = registry;
+		// ConditionEvaluator：解析 @Condition 的解析器
 		this.conditionEvaluator = new ConditionEvaluator(registry, environment, null);
+		// ★★★★★
+		// 注册注解的配置处理器，注册各种内部的组件，此时这些都还是 RootBeanDefinition，不是 Bean
 		AnnotationConfigUtils.registerAnnotationConfigProcessors(this.registry);
 	}
 
@@ -280,6 +284,7 @@ public class AnnotatedBeanDefinitionReader {
 			}
 		}
 
+		// 注册到容器
 		BeanDefinitionHolder definitionHolder = new BeanDefinitionHolder(abd, beanName);
 		definitionHolder = AnnotationConfigUtils.applyScopedProxyMode(scopeMetadata, definitionHolder, this.registry);
 		BeanDefinitionReaderUtils.registerBeanDefinition(definitionHolder, this.registry);
